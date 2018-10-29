@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>8th Wall Web: A-FRAME</title>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+
+    <!-- This prevents Google Chrome from showing a popup related to Google Cardboard -->
+    <script>window.navigator.getVRDisplays = function () {
+        return Promise && Promise.resolve([{displayName: 'noVRDisplay'}])
+    }</script>
+
+    <!-- We've included a slightly modified version of A-Frame, which fixes some polish concerns -->
+    <script src="8frame-v0.8.2.min.js"></script>
+
+    <!-- Additional scripts -->
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v4.2.0/dist/aframe-extras.min.js"></script>
+    <script src="https://ar.stage.saintbox.de/js/inflate.min.js"></script>
+
+    <!-- 8thWall Web - Replace the app key here with your own app key -->
+    <script src="https://apps.8thwall.com/xrweb"
+            appKey="xxxxxxxxxxxxxxx"></script>
+
+    <script>
+        // Simple script to reset the camera position to its initial position.
+        AFRAME.registerComponent('tap-recenter', {
+            init: function () {
+                const scene = this.el.sceneEl
+                scene.addEventListener('click', () => {
+                    scene.emit('recenter', {})
+                })
+            }
+        })
+
+        // Basic example of controlling the loading screen
+        AFRAME.registerComponent('loading-screen', {
+            init: function () {
+                const scene = this.el.sceneEl
+                scene.addEventListener('realityready', () => {
+                    loadingScreen.style.display = 'none'
+                })
+
+                scene.addEventListener('realityerror', () => {
+                    loadingScreen.textContent = 'An error has occurred.'
+                })
+
+                scene.addEventListener('camerastatuschange', event => {
+                    if (event.detail.status == 'failed') {
+                        loadingScreen.textContent = 'Camera permissions were denied.'
+                    }
+                })
+            }
+        })
+    </script>
+    <script src="snow.js"></script>
+    <style>
+        #loadingScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: "Arial";
+            text-transform: uppercase;
+            color: #000;
+            opacity: .6;
+            white-space: nowrap;
+            margin-left: -70px;
+        }
+
+        .angle {
+            position: absolute;
+            display: block;
+            opacity: .6;
+        }
+
+        .angle1 {
+            top: 0;
+            left: 0;
+        }
+
+        .angle2 {
+            top: 0;
+            right: 0;
+            transform: rotate(90deg);
+        }
+
+        .angle3 {
+            bottom: 0;
+            left: 0;
+            transform: rotate(-90deg);
+        }
+
+        .angle4 {
+            bottom: 0;
+            right: 0;
+            transform: rotate(180deg);
+        }
+
+        #canv {
+            position: absolute;
+            top: 0;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+<!-- 2D overlay UI can be done in HTML -->
+<div id="overlay"
+     style="position: absolute;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 5;
+                pointer-events: none;">
+    <div id="loadingScreen" class="animated infinite pulse">Find a surface</div>
+    <img src="./img/angle.png" class="angle angle1">
+    <img src="./img/angle.png" class="angle angle2">
+    <img src="./img/angle.png" class="angle angle3">
+    <img src="./img/angle.png" class="angle angle4">
+</div>
+
+<!-- Add the 'xrweb' attribute to your scene to make it an 8th Wall Web A-FRAME scene. -->
+<a-scene xrweb tap-recenter loading-screen>
+
+    <a-camera position="0 8 8"></a-camera>
+
+    <a-entity light="type:directional; castShadow:true; intensity: 1.5" position="1 1 1"></a-entity>
+
+    <a-plane material="opacity:0.1;" height="20" width="20" shadow="receive: true" rotation="-90 0 0"
+             position="0 0 0"></a-plane>
+
+    <a-entity click-drag fbx-model="src: url(./model/Jump.fbx);" scale="0.03 0.03 0.03" position="0 0 0"
+              crossorigin="anonymous" id="model" animation-mixer="animation-loop" shadow="receive: false"></a-entity>
+</a-scene>
+<canvas id='canv'></canvas>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var screen = document.getElementById('overlay');
+
+        setTimeout(function () {
+            screen.style.display = "none";
+        }, 5000);
+    });
+</script>
+</body>
+</html>
